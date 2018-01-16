@@ -32,10 +32,23 @@ class DNAsequence:
 
     def find_ORF_regex(self, seq, min_nt_len, translate, table, nan, start_codon, strand_sense):
         # modify the regex to include the stop codon?
-        # list comprehension, numpy
+
+        def longest_variant (orf, hit_list, longest_orf):
+
+            if longest_orf is None:
+                longest_orf = orf
+            elif len(longest_orf[3]) + longest_orf[0] == len(orf[3]) + orf[0] and len(orf[3]) > len(longest_orf[3]):
+                longest_orf = orf
+            elif len(longest_orf[3]) + longest_orf[0] != len(orf[3]) + orf[0]:
+                hit_list.append(longest_orf)
+                longest_orf = orf
+            hit_list.append(longest_orf)
+
+            return longest_orf
 
         pattern = re.compile(r'(?=({0}(?:...)*?)(?=TAG|TGA|TAA))'.format(start_codon))
 
+        longest_orf_hit = None
         orf_list = []
         for m in pattern.finditer(seq):
             orf = m.group(1)
@@ -43,15 +56,21 @@ class DNAsequence:
                 if nan is False and re.search('N', orf):
                     print ("Ignoring ORF starting at {0}; contains an ambigious NT call: 'N'".format(m.start()+1))
                 elif m.start() % 3 == 0:
+                    format_orf = (m.start(), strand_sense, 1, orf)
+                    longest_orf_hit = longest_variant (format_orf, orf_list, longest_orf_hit)
                     # print m.start(), m_end, 1, m.groups()[0]
-                    orf_list.append((m.start(), strand_sense, 1, orf))
+                    # orf_list.append((m.start(), strand_sense, 1, orf))
                 elif (m.start() - 1) % 3 == 0:
+                    format_orf = (m.start(), strand_sense, 2, orf)
+                    longest_orf_hit = longest_variant (format_orf, orf_list, longest_orf_hit)
                     # print m.start(), m_end, 2, m.groups()[0]
-                    orf_list.append((m.start(), strand_sense, 2, orf))
+                    # orf_list.append((m.start(), strand_sense, 2, orf))
                 else:
+                    format_orf = (m.start(), strand_sense, 3, orf)
+                    longest_orf_hit = longest_variant (format_orf, orf_list, longest_orf_hit)
                     # print m.start(), m_end, 3, m.groups()[0]
-                    orf_list.append((m.start(), strand_sense, 3, orf))
-
+                    # orf_list.append((m.start(), strand_sense, 3, orf))
+        '''
         refine_orf_list = []
         longest = None
         for orf in orf_list:
@@ -63,13 +82,13 @@ class DNAsequence:
                 refine_orf_list.append(longest)
                 longest = orf
         refine_orf_list.append(longest)
-
+        '''
         # formating and writting output
         final_orf_list = []
-        if refine_orf_list == [None]:
+        if orf_list == [None]:
             return ''
         else:
-            for orf in refine_orf_list:
+            for orf in orf_list:
                 if translate is False:
                     output = '{0}|STRAND_{1}_FRAME_{2}_LENGTH_{3}_START_{4}\n{5}\n'\
                         .format(self.tag.upper(), strand_sense, orf[2], len(orf[3]), orf[0] + 1, orf[3])
@@ -88,8 +107,9 @@ class DNAsequence:
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
+    #requiredNamed = parser.add_argument_group('required arguments')
     parser.add_argument('-f', '--fasta',
-        help='Specify the FASTA file with nucleotide sequence for ORF detection', required=True)
+        help='Specify the FASTA file with DNA nucleotide sequence for ORF detection', required=True)
     parser.add_argument('-l', '--min_ORF_len',
         help='Specify the minimum nucleotide length for ORF detection; default = 300 NT', default=300, type=int)
     parser.add_argument('-p', '--protein',
@@ -98,10 +118,11 @@ if __name__ == '__main__':
         help='Specify the translation table. Please see BioPython documentation', default=1, type=int)
     parser.add_argument('-s', '--stdout',
         help='Specify the flag for an output in a text file in FASTA format', action='store_true')
-    parser.add_argument('-n', '--ignore_ambigious',
-        help='Specify if ORFs with ambigious calls (marked by N) to be included in the output', action='store_true')
+    parser.add_argument('-n', '--ignore_ambiguous',
+        help='Specify if ORFs with ambiguous calls (marked by N) to be included in the output', action='store_true')
     parser.add_argument('-c', '--start_codon',
         help='Specify if you want to use a different start codon', default='ATG', type=str)
+    # args = parser.parse_args(['-h'])
     args = parser.parse_args()
 
     try:
@@ -117,15 +138,15 @@ if __name__ == '__main__':
                     if args.stdout:
                         with open(args.fasta.split(".")[0] + '_ORF.fasta', 'w') as out_file:
                             out_file.write(new_object.find_ORF_regex(new_object.sequence,\
-                                args.min_ORF_len, args.protein, args.table, args.ignore_ambigious, args.start_codon, '+1'))
+                                args.min_ORF_len, args.protein, args.table, args.ignore_ambiguous, args.start_codon, '+1'))
                             out_file.write(new_object.find_ORF_regex(new_object.rev_comp(),\
-                                args.min_ORF_len, args.protein, args.table, args.ignore_ambigious, args.start_codon, '-1'))
+                                args.min_ORF_len, args.protein, args.table, args.ignore_ambiguous, args.start_codon, '-1'))
                     else:
                         new_object.find_ORF_regex(new_object.sequence, args.min_ORF_len, \
-                            args.protein, args.table, args.ignore_ambigious, args.start_codon, '+1')
+                            args.protein, args.table, args.ignore_ambiguous, args.start_codon, '+1')
                         new_object.find_ORF_regex(new_object.rev_comp(), args.min_ORF_len, \
-                            args.protein, args.table, args.ignore_ambigious, args.start_codon, '-1')
-                        print (new_object.count_GC())
+                            args.protein, args.table, args.ignore_ambiguous, args.start_codon, '-1')
+                        # print (new_object.count_GC())
                 else:
                     print ('The FASTA file does not contain a nucleotide sequence')
             else:
