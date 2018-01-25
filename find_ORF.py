@@ -13,16 +13,20 @@ import argparse
 import re
 from Bio.Seq import Seq  # Biopython module; install with pip via CLI
 
+# A class to perform some tasks and manipulate DNA sequence
 class DNAsequence:
     def __init__(self, sequence, full_tag):
         self.sequence = sequence
         self.full_tag = full_tag
         self.tag = full_tag.split(' ')[0]
 
+    # a method to find the number of codons
     find_codon_len = lambda self, codon: len(re.findall(codon, self.sequence))
 
+    # a method to find a reverse compliment
     rev_comp = lambda self: str(Seq(self.sequence).reverse_complement())
 
+    # a method to find GC precentage in the sequence
     def count_GC(self):
         g_count = self.sequence.count('G')
         c_count = self.sequence.count('C')
@@ -30,11 +34,15 @@ class DNAsequence:
 
         return gc_count
 
+    # a method to translate DNA sequence to amino acid sequence
+    def translate(self, table):
+        return Seq(self.sequence).translate(table)
+
+    # a method to find ORFs
     def find_ORF_regex(self, seq, min_nt_len, translate, table, nan, start_codon, strand_sense):
         # modify the regex to include the stop codon?
 
         def longest_variant (orf, hit_list, longest_orf):
-
             if longest_orf is None:
                 longest_orf = orf
             elif len(longest_orf[3]) + longest_orf[0] == len(orf[3]) + orf[0] and len(orf[3]) > len(longest_orf[3]):
@@ -42,7 +50,6 @@ class DNAsequence:
             elif len(longest_orf[3]) + longest_orf[0] != len(orf[3]) + orf[0]:
                 hit_list.append(longest_orf)
                 longest_orf = orf
-            hit_list.append(longest_orf)
 
             return longest_orf
 
@@ -58,36 +65,19 @@ class DNAsequence:
                 elif m.start() % 3 == 0:
                     format_orf = (m.start(), strand_sense, 1, orf)
                     longest_orf_hit = longest_variant (format_orf, orf_list, longest_orf_hit)
-                    # print m.start(), m_end, 1, m.groups()[0]
-                    # orf_list.append((m.start(), strand_sense, 1, orf))
                 elif (m.start() - 1) % 3 == 0:
                     format_orf = (m.start(), strand_sense, 2, orf)
                     longest_orf_hit = longest_variant (format_orf, orf_list, longest_orf_hit)
-                    # print m.start(), m_end, 2, m.groups()[0]
-                    # orf_list.append((m.start(), strand_sense, 2, orf))
                 else:
                     format_orf = (m.start(), strand_sense, 3, orf)
                     longest_orf_hit = longest_variant (format_orf, orf_list, longest_orf_hit)
-                    # print m.start(), m_end, 3, m.groups()[0]
-                    # orf_list.append((m.start(), strand_sense, 3, orf))
-        '''
-        refine_orf_list = []
-        longest = None
-        for orf in orf_list:
-            if longest is None:
-                longest = orf
-            elif len(longest[3]) + longest[0] == len(orf[3]) + orf[0] and len(orf[3]) > len(longest[3]):
-                longest = orf
-            elif len(longest[3]) + longest[0] != len(orf[3]) + orf[0]:
-                refine_orf_list.append(longest)
-                longest = orf
-        refine_orf_list.append(longest)
-        '''
+        orf_list.append(longest_orf_hit)
+
         # formating and writting output
-        final_orf_list = []
         if orf_list == [None]:
             return ''
         else:
+            final_orf_list = []
             for orf in orf_list:
                 if translate is False:
                     output = '{0}|STRAND_{1}_FRAME_{2}_LENGTH_{3}_START_{4}\n{5}\n'\
@@ -104,25 +94,34 @@ class DNAsequence:
             final_string = ''.join(final_orf_list)
             return final_string
 
+class CodingDNA(DNAsequence):
+    def __init__(self, sequence, full_tag, strand, frame, start):
+        super().__init__(sequence, full_tag)
+        self.strand = strand
+        self.frame = frame
+        self.start = start
+
+# the controller of the script; including CLI arguments; file format check etc.
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    #requiredNamed = parser.add_argument_group('required arguments')
-    parser.add_argument('-f', '--fasta',
+    parser._action_groups.pop()
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')
+    required.add_argument('-f', '--fasta',
         help='Specify the FASTA file with DNA nucleotide sequence for ORF detection', required=True)
-    parser.add_argument('-l', '--min_ORF_len',
+    optional.add_argument('-l', '--min_ORF_len',
         help='Specify the minimum nucleotide length for ORF detection; default = 300 NT', default=300, type=int)
-    parser.add_argument('-p', '--protein',
+    optional.add_argument('-p', '--protein',
         help='Include the flag if you wish to translate ORFs to peptide sequences', action='store_true')
-    parser.add_argument('-t', '--table',
+    optional.add_argument('-t', '--table',
         help='Specify the translation table. Please see BioPython documentation', default=1, type=int)
-    parser.add_argument('-s', '--stdout',
+    optional.add_argument('-s', '--stdout',
         help='Specify the flag for an output in a text file in FASTA format', action='store_true')
-    parser.add_argument('-n', '--ignore_ambiguous',
+    optional.add_argument('-n', '--ignore_ambiguous',
         help='Specify if ORFs with ambiguous calls (marked by N) to be included in the output', action='store_true')
-    parser.add_argument('-c', '--start_codon',
+    optional.add_argument('-c', '--start_codon',
         help='Specify if you want to use a different start codon', default='ATG', type=str)
-    # args = parser.parse_args(['-h'])
     args = parser.parse_args()
 
     try:
@@ -131,10 +130,11 @@ if __name__ == '__main__':
             if first_line.startswith('>'):
                 print ('The input file format seems to match FASTA! Proceeding...')
                 second_line = f.readline().strip('\n').upper()
-                if re.match(r'^A|^T|^C|^G', second_line):
+                if re.search(r'U', second_line):
+                    print ('The sequence appears to be RNA. Please use a DNA sequence!')
+                elif re.match(r'A|T|C|G', second_line):
                     sequence = second_line + f.read().replace('\n', '')
                     new_object = DNAsequence(sequence.upper(), first_line)
-
                     if args.stdout:
                         with open(args.fasta.split(".")[0] + '_ORF.fasta', 'w') as out_file:
                             out_file.write(new_object.find_ORF_regex(new_object.sequence,\
