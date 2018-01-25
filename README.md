@@ -1,5 +1,6 @@
 # find-open-reading-frames
 A script to find open reading frames (ORF) in the nucleotide sequence in input as FASTA file. Searches all 6 reading frames of the sequence on assumption that 'ATG' is a start codon and 'TAG/TGA/TAA' is a stop codon.
+For the script to work BioPython must be installed which can be do with "pip install biopython" command on the CLI.
 
 find_ORF.py supports multiple CLI options supplied by the user:
 * setting minimum nucleotide length for ORF detection (default = 300);
