@@ -9,6 +9,7 @@
 ##Please use the help flag for further information and options
 ###PLEASE READ!###
 
+##TO DO: wrap the main function in Cython; include stop codons; \n in output file
 import argparse
 import re
 from Bio.Seq import Seq  # Biopython module; install with pip via CLI

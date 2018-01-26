@@ -2,3 +2,5 @@ M17357.fasta.txt
 find_ORF_master.py
 sequence.fasta.txt
 sequence.txt
+check_ORFs.py
+sequence_ORF.fasta
