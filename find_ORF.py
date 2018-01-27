@@ -6,6 +6,7 @@
 ##Detects ORFs in a DNA sequence provided as input FASTA file
 ##Assumes that the starting codon is ATG, accounts all 6 reading frames
 ##Ignores ORFs containing ambigious calls indicated by mark 'N'
+##Does not ignore nested ORFs
 ##Please use the help flag for further information and options
 ###PLEASE READ!###
 
@@ -134,7 +135,7 @@ if __name__ == '__main__':
                 if re.search(r'U', second_line):
                     print ('The sequence appears to be RNA. Please use a DNA sequence!')
                 elif re.match(r'A|T|C|G', second_line):
-                    sequence = second_line + f.read().replace('\n', '')
+                    sequence = ''.join([second_line, f.read().replace('\n', '')])
                     new_object = DNAsequence(sequence.upper(), first_line)
                     if args.stdout:
                         with open(args.fasta.split(".")[0] + '_ORF.fasta', 'w') as out_file:

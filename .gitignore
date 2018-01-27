@@ -4,3 +4,4 @@ sequence.fasta.txt
 sequence.txt
 check_ORFs.py
 sequence_ORF.fasta
+new_find_ORF.py
