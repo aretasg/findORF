@@ -5,3 +5,6 @@ sequence.txt
 check_ORFs.py
 sequence_ORF.fasta
 new_find_ORF.py
+.DS_store
+__pycache__
+find_ORF_old.py
