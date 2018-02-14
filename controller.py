@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-#Author: Aretas Gaspariunas
+# Author: Aretas Gaspariunas
 # the controller of the script; including CLI arguments; file format check etc.
 # both files must be in the same folder to be executable (controller.py and find_ORF.py)
 

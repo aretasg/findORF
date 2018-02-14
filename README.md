@@ -16,5 +16,6 @@ controller.py supports multiple CLI options supplied by the user:
 * -c <codon> option to search ORFs with a start codon specified by the user (default = 'ATG').
 
 Example input and output files are provided (see foo files)
+Example usage in CLI: "python controller.py -i seq_foo.fasta"
 
 More information regarding the use and options will be added later and in the meantime use --help flag for information on all options and parameters.
