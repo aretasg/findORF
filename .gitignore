@@ -8,3 +8,6 @@ new_find_ORF.py
 .DS_store
 __pycache__
 find_ORF_old.py
+find_ORF.pyc
+setup.py
+find_ORF.pyx

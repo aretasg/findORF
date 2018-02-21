@@ -2,13 +2,15 @@
 
 # Author: Aretas Gaspariunas
 
-###PLEASE READ!###
+### PLEASE READ! ###
 ## Detects ORFs in a DNA sequence provided as input FASTA file
 ## Assumes that the starting codon is ATG, accounts all 6 reading frames
 ## By default ignores ORFs containing ambigious calls indicated by letter 'N'
 ## Does not ignore nested ORFs
 ## Please use the help flag for further information and options
-###PLEASE READ!###
+### PLEASE READ! ###
+
+# todo: remove biopython dependecy and replace it with .DAT files
 
 import re
 from Bio.Seq import Seq  # Biopython module; install with pip via CLI
@@ -50,10 +52,12 @@ class DNAsequence:
                         if seq[i2:i2+3] in ['TAG', 'TAA', 'TGA']:
                             if len(seq[i:i2+3]) >= min_nt_len:
                                 if nan is False and re.search('N', seq[i:i2+3]):
-                                    print ("Ignoring ORF starting at {0}; contains an ambigious NT call: 'N'".format(i+1))
+                                    print ("Ignoring ORF starting at {0}; \
+                                        contains an ambigious NT call: 'N'".format(i+1))
                                     pass
                                 elif i2+3 not in orf_dict.keys():
-                                    orf_dict[i2+3] = CodingDNA(seq[i:i2+3], self.full_tag, strand, frame + 1, i + 1) # self.sequence[i:i2+3]
+                                    orf_dict[i2+3] = CodingDNA(seq[i:i2+3],
+                                        self.full_tag, strand, frame + 1, i + 1) # self.sequence[i:i2+3]
                                 elif i2+3 in orf_dict.keys():
                                     if len(orf_dict[i2+3].sequence) > len(seq[i:i2+3]):
                                         pass

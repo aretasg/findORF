@@ -2,14 +2,20 @@
 
 # Author: Aretas Gaspariunas
 # the controller of the script; including CLI arguments; file format check etc.
-# both files must be in the same folder to be executable (controller.py and find_ORF.py)
+# both files must be in the same folder to be executable (findORF.py and fions.py)
 
 if __name__ == '__main__':
 
     import argparse
-    from find_ORF import *
+    import sys
+    from fions import *
 
-    parser = argparse.ArgumentParser()
+    # CLI argument parser
+    parser = argparse.ArgumentParser(
+        description='''A tool to find open reading frame(s) in a DNA fasta file.\n
+            The tool is inteded to be used with Python 3.6 and Biopython 1.7.\n
+            For more information and support please visit: github.com/aretas2/findORF''',
+        epilog='Example usage in CLI: "python controller.py -i foo.fasta')
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
@@ -29,10 +35,11 @@ if __name__ == '__main__':
         help='Specify if you want to use a different start codon', default='ATG', type=str)
     args = parser.parse_args()
 
+    # a function to handle output writting to a file
     def writting_file (dictionary, output):
         for key, value in dictionary.items():
             if args.translate is True:
-                prot_seq = str(Seq(value.sequence).translate(args.table))
+                prot_seq = str(Seq(value.sequence).translate(args.table)).replace('*','')
                 # prot_seq = str((value.sequence).translate(args.table))
                 sequence = '\n'.join(prot_seq[f:f+60] for f in range(0, len(prot_seq), 60))
                 output_str = '{0}|STRAND_{1}_FRAME_{2}_LENGTH_{3}_START_{4}\n{5}\n'\
@@ -45,6 +52,7 @@ if __name__ == '__main__':
                 output.write(output_str)
         return output
 
+    # opening file, cathing errors and exceptions, running functions; information about the run
     try:
         with open(args.fasta, 'r') as f:
             first_line = f.readline().strip('\n')
@@ -53,23 +61,27 @@ if __name__ == '__main__':
                 second_line = f.readline().strip('\n').upper()
                 if re.search(r'U', second_line):
                     print ('The sequence appears to be a RNA sequence. Please use a DNA sequence!')
-                    exit()
+                    sys.exit()
                 elif re.match(r'A|T|C|G', second_line):
                     sequence = ''.join([second_line, f.read().replace('\n', '')])
                     new_object = DNAsequence(sequence, first_line)
-                    orf_forward_dict = new_object.find_ORF(new_object.sequence, args.min_ORF_len, '+1', args.start_codon, args.ignore_ambiguous)
-                    orf_rev_dict = new_object.find_ORF(new_object.rev_compliment(), args.min_ORF_len, '-1', args.start_codon, args.ignore_ambiguous)
+                    orf_forward_dict = new_object.find_ORF(new_object.sequence,
+                        args.min_ORF_len, '+1', args.start_codon, args.ignore_ambiguous)
+                    orf_rev_dict = new_object.find_ORF(new_object.rev_compliment(),
+                        args.min_ORF_len, '-1', args.start_codon, args.ignore_ambiguous)
 
                     if args.stdout:
+                        print ('Writting found ORFs as output to a file in fasta format.')
                         with open(args.fasta.split(".")[0] + '_{0}_ORF.fasta'.format(args.min_ORF_len), 'w') as out_file:
                             writting_file (orf_forward_dict, out_file)
                             writting_file (orf_rev_dict, out_file)
 
                     print ('{0} ORF(s) have been detected across all 6 reading frames.'.format(len(orf_forward_dict) + len(orf_rev_dict)))
+                    print ('Done. Thank you for using findORF!')
                 else:
                     print ('The FASTA file does not contain a nucleotide sequence!')
             else:
                 print ('Wrong file format! The input file must be in FASTA format')
-                exit()
+                sys.exit()
     except IOError:
         print ('Could not open the file!', args.fasta)
