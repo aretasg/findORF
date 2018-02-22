@@ -10,13 +10,11 @@
 ## Please use the help flag for further information and options
 ### PLEASE READ! ###
 
-# todo: remove biopython dependecy and replace it with .DAT files
-
 import re
-from Bio.Seq import Seq  # Biopython module; install with pip via CLI
+# from Bio.Seq import Seq  # Biopython module; install with pip via CLI
 
 class DNAsequence:
-    def __init__(self, sequence, full_tag):
+    def __init__ (self, sequence, full_tag):
         self.sequence = sequence.upper()
         self.full_tag = full_tag
         self.tag = full_tag.split(' ')[0]
@@ -25,7 +23,7 @@ class DNAsequence:
     find_codon_len = lambda self, codon: len(re.findall(codon, self.sequence))
 
     # a method to find GC precentage in the sequence
-    def count_GC(self):
+    def count_GC (self):
         g_count = self.sequence.count('G')
         c_count = self.sequence.count('C')
         gc_count = float((g_count + c_count)) / float(len(self.sequence)) * 100
@@ -33,13 +31,17 @@ class DNAsequence:
         return gc_count
 
     # a method to find a reverse compliment strand
-    def rev_compliment(self):
+    def rev_compliment (self):
         translate_dict = {ord('A'):'T', ord('T'):'A', ord('C'):'G', ord('G'):'C'}
         return self.sequence.translate(translate_dict)[::-1]
 
-    # a method to translate a DNA sequence to an amino acid sequence
-    def translate(self, table):
-        return Seq(self.sequence).translate(table)
+    # a method to translate a DNA sequence to an amino acid sequence (requires Biopython)
+    # def translate (self, table):
+    #     return Seq(self.sequence).translate(table)
+
+    # a method to translate a DNA sequence to a peptide sequence (without BioPython)
+    def translate2pep (self, table_dict):
+        return ''.join(table_dict[self.sequence[i:i+3]] for i in range(0, len(self.sequence), 3))
 
     # a method to find ORFs in a sequence (3 reading frames)
     def find_ORF (self, seq, min_nt_len, strand, start_codon, nan):
@@ -66,8 +68,8 @@ class DNAsequence:
 
         return orf_dict
 
-class CodingDNA(DNAsequence):
-    def __init__(self, sequence, full_tag, strand, frame, start):
+class CodingDNA (DNAsequence):
+    def __init__ (self, sequence, full_tag, strand, frame, start):
         super().__init__(sequence, full_tag)
         self.strand = strand
         self.frame = frame

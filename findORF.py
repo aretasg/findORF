@@ -26,7 +26,7 @@ if __name__ == '__main__':
     optional.add_argument('-p', '--translate',
         help='Include the flag if you wish to translate ORFs to peptide sequences', action='store_true')
     optional.add_argument('-t', '--table',
-        help='Specify the translation table. Please see BioPython documentation', default=1, type=int)
+        help='Specify the translation table.', default='TABLE1.DAT')
     optional.add_argument('-o', '--stdout',
         help='Specify the flag for an output in a text file in FASTA format', action='store_true')
     optional.add_argument('-n', '--ignore_ambiguous',
@@ -39,8 +39,8 @@ if __name__ == '__main__':
     def writting_file (dictionary, output):
         for key, value in dictionary.items():
             if args.translate is True:
-                prot_seq = str(Seq(value.sequence).translate(args.table)).replace('*','')
-                # prot_seq = str((value.sequence).translate(args.table))
+                # prot_seq = str(Seq(value.sequence).translate(args.table)).replace('*','') # biopython
+                prot_seq = value.translate2pep(trans_table).replace('*','')
                 sequence = '\n'.join(prot_seq[f:f+60] for f in range(0, len(prot_seq), 60))
                 output_str = '{0}|STRAND_{1}_FRAME_{2}_LENGTH_{3}_START_{4}\n{5}\n'\
                     .format(value.tag.upper(), value.strand, value.frame, len(prot_seq), value.start, sequence)
@@ -51,6 +51,12 @@ if __name__ == '__main__':
                     .format(value.tag.upper(), value.strand, value.frame, len(value.sequence), value.start, sequence)
                 output.write(output_str)
         return output
+
+    # reading translation table for .DAT file (TABLE1.DAT)
+    trans_table = {}
+    with open (args.table, 'r') as translation_file:
+        for line in translation_file:
+            trans_table[line.split()[0]] = line.split()[1]
 
     # opening file, cathing errors and exceptions, running functions; information about the run
     try:
