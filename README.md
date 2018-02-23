@@ -3,7 +3,7 @@ A CLI tool to find open reading frames (findORF) in a DNA sequence as FASTA file
 
 **The script was written in and intended to be used with Python 3.6 although it should work with Python 2.7.**
 
-To start using the script simply run the findORF.py script while fions.py and TABLE1.DAT is located in the same directory.
+To start using the script simply run the findORF.py script while fions.py and TABLE1.DAT are located in the same directory.
 findORF.py supports multiple CLI options supplied by the user:
 
 * -i <file name> a flag to specify the filename and/or the directory (note that this is the only required option);
@@ -12,7 +12,7 @@ findORF.py supports multiple CLI options supplied by the user:
 * -o option to write an output to a FASTA file;
 * -n option to include ORFs with ambiguous calls;
 * -c <codon> option to search ORFs with a start codon specified by the user (default = 'ATG');
-* -t <file name> selecting the translation table (default = TABLE1.DAT); You can replace TABLE1.DAT with a translation table of your preference that matches the default file format.
+* -t <file name> selecting the translation table (default = TABLE1.DAT); You can replace TABLE1.DAT (GenBank Standard translation table) with a translation table of your preference that matches the default file format.
 
 Example input and output files are provided (see foo files);
 Example usage in CLI: "python findORF.py -i seq_foo.fasta -p -o"
