@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 # Author: Aretas Gaspariunas
-# the controller of the script; including CLI arguments; file format check etc.
-# both files must be in the same folder to be executable (findORF.py and fions.py)
+# the CLI argument parser of the program; including CLI argument description; file format check etc.
+# both files must be located in the same folder to be executable (findORF.py and fions.py)
 
 if __name__ == '__main__':
 
@@ -13,9 +13,9 @@ if __name__ == '__main__':
     # CLI argument parser
     parser = argparse.ArgumentParser(
         description='''A tool to find open reading frame(s) in a DNA fasta file.\n
-            The tool is inteded to be used with Python 3.6 and Biopython 1.7.\n
+            The tool is inteded to be used with Python 3.6.\n
             For more information and support please visit: github.com/aretas2/findORF''',
-        epilog='Example usage in CLI: "python controller.py -i foo.fasta')
+        epilog='Example usage in CLI: "python findORF.py -i foo.fasta')
     parser._action_groups.pop()
     required = parser.add_argument_group('required arguments')
     optional = parser.add_argument_group('optional arguments')
@@ -83,7 +83,7 @@ if __name__ == '__main__':
                             writting_file (orf_rev_dict, out_file)
 
                     print ('{0} ORF(s) have been detected across all 6 reading frames.'.format(len(orf_forward_dict) + len(orf_rev_dict)))
-                    print ('Done. Thank you for using findORF!')
+                    print ('Done.\nThank you for using findORF!')
                 else:
                     print ('The FASTA file does not contain a nucleotide sequence!')
             else:
