@@ -66,8 +66,7 @@ if __name__ == '__main__':
                 print ('The input file format seems to match FASTA! Proceeding...')
                 second_line = f.readline().strip('\n').upper()
                 if re.search(r'U', second_line):
-                    print ('The sequence appears to be a RNA sequence. Please use a DNA sequence!')
-                    sys.exit()
+                    sys.exit('The sequence appears to be a RNA sequence. Please use a DNA sequence!')
                 elif re.match(r'A|T|C|G', second_line):
                     sequence = ''.join([second_line, f.read().replace('\n', '')])
                     new_object = DNAsequence(sequence, first_line)
@@ -87,7 +86,6 @@ if __name__ == '__main__':
                 else:
                     print ('The FASTA file does not contain a nucleotide sequence!')
             else:
-                print ('Wrong file format! The input file must be in FASTA format')
-                sys.exit()
+                sys.exit('Wrong file format! The input file must be in FASTA format')
     except IOError:
-        print ('Could not open the file!', args.fasta)
+        sys.exit('Could not open the file!', args.fasta)
